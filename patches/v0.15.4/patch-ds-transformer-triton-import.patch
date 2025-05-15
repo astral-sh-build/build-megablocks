@@ -1,0 +1,16 @@
+# Resolves: https://github.com/deepspeedai/DeepSpeed/issues/7028
+# See: https://github.com/deepspeedai/DeepSpeed/pull/6989
+
+diff --git a/deepspeed/model_implementations/transformers/ds_transformer.py b/deepspeed/model_implementations/transformers/ds_transformer.py
+index 360113b7..7e3c81b7 100644
+--- a/deepspeed/model_implementations/transformers/ds_transformer.py
++++ b/deepspeed/model_implementations/transformers/ds_transformer.py
+@@ -14,7 +14,7 @@ from deepspeed.ops.transformer.inference.ds_attention import DeepSpeedSelfAttent
+ from deepspeed.ops.transformer.inference.op_binding.workspace import WorkspaceOp
+ from deepspeed.accelerator import get_accelerator
+ import deepspeed
+-if deepspeed.HAS_TRITON:
++if deepspeed.HAS_TRITON and get_accelerator().is_triton_supported():
+     from deepspeed.ops.transformer.inference.triton.mlp import TritonMLP
+     from deepspeed.ops.transformer.inference.triton.attention import TritonSelfAttention
+ 

@@ -1,0 +1,22 @@
+diff --git a/setup.py b/setup.py
+index 26cecf4..0c0b1a0 100644
+--- a/setup.py
++++ b/setup.py
+@@ -95,7 +95,7 @@ ext_modules = []
+ if 'cu' in torch.__version__ and CUDA_HOME is not None:
+ 
+     cmdclass = {'build_ext': BuildExtension}
+-    nvcc_flags = ['--ptxas-options=-v', '--optimize=2']
++    nvcc_flags = ['--ptxas-options=-v', '--optimize=2', '-D_GLIBCXX_USE_CXX11_ABI=1']
+ 
+     if os.environ.get('TORCH_CUDA_ARCH_LIST'):
+         # Let PyTorch builder to choose device to target for.
+@@ -113,7 +113,7 @@ if 'cu' in torch.__version__ and CUDA_HOME is not None:
+             ['csrc/ops.cu'],
+             include_dirs=['csrc'],
+             extra_compile_args={
+-                'cxx': ['-fopenmp'],
++                'cxx': ['-fopenmp', '-D_GLIBCXX_USE_CXX11_ABI=1'],
+                 'nvcc': nvcc_flags,
+             },
+         ),
