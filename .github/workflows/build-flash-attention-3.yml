@@ -23,7 +23,7 @@ concurrency:
 jobs:
   build_wheels:
     name: Build Wheel
-    runs-on: depot-ubuntu-latest-64
+    runs-on: gpu
     env:
       MEGABLOCKS_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.MEGABLOCKS_VERSION || 'v0.9.0' }}
 
@@ -43,6 +43,10 @@ jobs:
           repository: databricks/megablocks
           ref: ${{ env.MEGABLOCKS_VERSION }}
           persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13' 
 
       - name: Checkout utils
         uses: actions/checkout@v4
@@ -73,16 +77,15 @@ jobs:
         env:
           CIBW_BUILD: cp${{ env.MATRIX_PYTHON_VERSION }}-*64
           CIBW_MANYLINUX_X86_64_IMAGE: pytorch/manylinux2_28-builder:cuda${{ env.MANYLINUX_CUDA_VERSION }}
-          CIBW_BEFORE_ALL: >
-            curl -LsSf https://astral.sh/uv/install.sh | sh
           CIBW_BEFORE_BUILD_LINUX: >
             (yes | dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo || true) &&
             (yum install -y cuda-driver-devel-${{ env.MANYLINUX_CUDA_COMPAT_VERSION }} || true) &&
             (yum install -y glibc glibc-devel || apt-get install -y libc6-dev || apk add --update --no-cache musl-dev || true) &&
             (yum install -y libffi-devel || apt-get install -y libffi-devel || apk add --update --no-cache libffi-devel || true) &&
-            uv pip install typing-extensions==4.12.2 &&
+            pip install setuptools wheel &&
+            pip install typing-extensions==4.12.2 &&
             export TORCH_CUDA_VERSION=$(python -c "from os import environ as env; minv = {'2.4': 118, '2.5': 118, '2.6': 118, '2.7': 118}[env['MATRIX_TORCH_VERSION']]; maxv = {'2.4': 124, '2.5': 124, '2.6': 126, '2.7': 128}[env['MATRIX_TORCH_VERSION']]; print(minv if int(env['MATRIX_CUDA_VERSION']) < 120 else maxv)") &&
-            uv pip install --no-cache-dir torch==${{ matrix.torch-version }} --index-url https://download.pytorch.org/whl/cu${TORCH_CUDA_VERSION}
+            pip install --no-cache-dir torch==${{ matrix.torch-version }} --index-url https://download.pytorch.org/whl/cu${TORCH_CUDA_VERSION}
           CIBW_ENVIRONMENT: >
             PATH=$PATH:/root/.local/bin
             CUDA_HOME="/usr/local/cuda-${{ env.MANYLINUX_CUDA_VERSION }}"
@@ -94,10 +97,9 @@ jobs:
             MATRIX_TORCH_VERSION=${{ env.MATRIX_TORCH_VERSION }}
             MATRIX_PYTHON_VERSION=${{ env.MATRIX_PYTHON_VERSION }}
             MAX_JOBS=1
-            UV_PYTHON=/opt/python/cp${{ env.MATRIX_PYTHON_VERSION }}-cp${{ env.MATRIX_PYTHON_VERSION }}/bin/python
           CIBW_SKIP: "*musllinux*"
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair -w /tmp/cibuildwheel/repaired_wheel {wheel} --exclude libcuda.so --exclude libcuda.so.1 --exclude libc10.so --exclude libc10_cuda.so --exclude libtorch.so --exclude libtorch_python.so --exclude libtorch_cpu.so --exclude libtorch_cuda.so --exclude libtorch_cuda_cpp.so --exclude libtorch_cuda_cu.so --exclude libcudart.so.11 --exclude libcudart.so.12 --exclude libcudart.so.11.0 --exclude libcudart.so.12.0 --exclude libcurand.so.10 --exclude libcufile_rdma.so --exclude libcufile_rdma.so.1 --exclude libcufile.so.1 --exclude libcufile.so.0 --exclude libcufile.so"
-          CIBW_BUILD_FRONTEND: "build[uv]; args: --no-isolation"
+          CIBW_CONTAINER_ENGINE: "docker; create_args: --gpus all"
 
       - name: Log Built Wheels
         run: |
