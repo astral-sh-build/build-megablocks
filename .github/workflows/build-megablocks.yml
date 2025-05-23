@@ -117,7 +117,6 @@ jobs:
             MATRIX_CUDA_VERSION=${{ env.MATRIX_CUDA_VERSION }}
             MATRIX_TORCH_VERSION=${{ env.MATRIX_TORCH_VERSION }}
             MATRIX_PYTHON_VERSION=${{ env.MATRIX_PYTHON_VERSION }}
-            # See: https://github.com/pytorch/pytorch/blob/1eba9b3aa3c43f86f4a2c807ac8e12c4a7767340/torch/utils/cpp_extension.py#L2046-L2048
             TORCH_CUDA_ARCH_LIST="8.0;8.6;9.0;10.0"
             MEGABLOCKS_FORCE_CXX11_ABI=${{ matrix.cxx11_abi }}
             MAX_JOBS=1
