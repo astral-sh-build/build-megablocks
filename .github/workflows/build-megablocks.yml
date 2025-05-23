@@ -51,10 +51,10 @@ jobs:
             torch-version: "2.6.0"
             cuda-version: "12.8.1"
             cxx11_abi: "FALSE"
-          - python-version: "3.12"
-            torch-version: "2.6.0"
-            cuda-version: "12.8.1"
-            cxx11_abi: "TRUE"
+          # - python-version: "3.12"
+          #   torch-version: "2.6.0"
+          #   cuda-version: "12.8.1"
+          #   cxx11_abi: "TRUE"
 
     steps:
       - name: Checkout MegaBlocks
