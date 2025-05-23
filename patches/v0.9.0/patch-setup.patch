@@ -1,5 +1,5 @@
 diff --git a/setup.py b/setup.py
-index 26cecf4..6e0d3ab 100644
+index 26cecf4..789fc6b 100644
 --- a/setup.py
 +++ b/setup.py
 @@ -6,16 +6,24 @@
@@ -134,9 +134,9 @@ index 26cecf4..6e0d3ab 100644
 +            name='megablocks_ops',
 +            sources=['csrc/ops.cu'],
              include_dirs=['csrc'],
-+            define_macros=[
-+                ('_GLIBCXX_USE_CXX11_ABI', '1' if force_cxx11_abi else '0'),
-+            ],
++            # define_macros=[
++            #     ('_GLIBCXX_USE_CXX11_ABI', '1' if force_cxx11_abi else '0'),
++            # ],
              extra_compile_args={
                  'cxx': ['-fopenmp'],
                  'nvcc': nvcc_flags,
