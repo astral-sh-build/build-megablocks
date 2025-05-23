@@ -1,22 +1,19 @@
 diff --git a/setup.py b/setup.py
-index 26cecf4..0c0b1a0 100644
+index 26cecf4..455f009 100644
 --- a/setup.py
 +++ b/setup.py
-@@ -95,7 +95,7 @@ ext_modules = []
+@@ -93,6 +93,14 @@ ext_modules = []
+ 
+ # Only install CUDA extensions if available
  if 'cu' in torch.__version__ and CUDA_HOME is not None:
++    # HACK: The compiler flag -D_GLIBCXX_USE_CXX11_ABI is set to be the same as
++    # torch._C._GLIBCXX_USE_CXX11_ABI
++    # https://github.com/pytorch/pytorch/blob/8472c24e3b5b60150096486616d98b7bea01500b/torch/utils/cpp_extension.py#L920
++    force_cxx11_abi = os.getenv("MEGABLOCKS_FORCE_CXX11_ABI")
++    if force_cxx11_abi == "TRUE":
++        torch._C._GLIBCXX_USE_CXX11_ABI = True
++    elif force_cxx11_abi == "FALSE":
++        torch._C._GLIBCXX_USE_CXX11_ABI = False
  
      cmdclass = {'build_ext': BuildExtension}
--    nvcc_flags = ['--ptxas-options=-v', '--optimize=2']
-+    nvcc_flags = ['--ptxas-options=-v', '--optimize=2', '-D_GLIBCXX_USE_CXX11_ABI=1']
- 
-     if os.environ.get('TORCH_CUDA_ARCH_LIST'):
-         # Let PyTorch builder to choose device to target for.
-@@ -113,7 +113,7 @@ if 'cu' in torch.__version__ and CUDA_HOME is not None:
-             ['csrc/ops.cu'],
-             include_dirs=['csrc'],
-             extra_compile_args={
--                'cxx': ['-fopenmp'],
-+                'cxx': ['-fopenmp', '-D_GLIBCXX_USE_CXX11_ABI=1'],
-                 'nvcc': nvcc_flags,
-             },
-         ),
+     nvcc_flags = ['--ptxas-options=-v', '--optimize=2']
