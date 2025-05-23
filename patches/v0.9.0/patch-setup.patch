@@ -1,158 +1,19 @@
 diff --git a/setup.py b/setup.py
-index 26cecf4..789fc6b 100644
+index 26cecf4..c37a1a9 100644
 --- a/setup.py
 +++ b/setup.py
-@@ -6,16 +6,24 @@
- import os
- import warnings
- from typing import Any, Dict, Mapping
--
+@@ -9,10 +9,14 @@ from typing import Any, Dict, Mapping
+ 
  from setuptools import find_packages, setup
  
--# We require torch in setup.py to build cpp extensions "ahead of time"
--# More info here: # https://pytorch.org/tutorials/advanced/cpp_extension.html
-+# ------------------------------------------------------------------------------
-+# 1) Read the ABI override before importing BuildExtension
-+# ------------------------------------------------------------------------------
++# See: https://github.com/Dao-AILab/flash-attention/blob/0e79d71175346c7151f49ab6287084a052bc9613/setup.py#L196
 +force_cxx11_abi = os.getenv("MEGABLOCKS_FORCE_CXX11_ABI", "FALSE") == "TRUE"
-+print("force_cxx11_abi", force_cxx11_abi)
 +
-+import torch
-+# Apply the override so BuildExtension picks it up
-+#torch._C._GLIBCXX_USE_CXX11_ABI = force_cxx11_abi
-+
+ # We require torch in setup.py to build cpp extensions "ahead of time"
+ # More info here: # https://pytorch.org/tutorials/advanced/cpp_extension.html
  try:
--    import torch
+     import torch
++    torch._C._GLIBCXX_USE_CXX11_ABI = force_cxx11_abi
      from torch.utils.cpp_extension import CUDA_HOME, BuildExtension, CUDAExtension
  except ModuleNotFoundError as e:
--    raise ModuleNotFoundError("No module named 'torch'. `torch` is required to install `MegaBlocks`.",) from e
-+    raise ModuleNotFoundError(
-+        "No module named 'torch'. `torch` is required to install `MegaBlocks`.",
-+    ) from e
- 
- _PACKAGE_NAME = 'megablocks'
- _PACKAGE_DIR = 'megablocks'
-@@ -23,32 +31,25 @@ _REPO_REAL_PATH = os.path.dirname(os.path.realpath(__file__))
- _PACKAGE_REAL_PATH = os.path.join(_REPO_REAL_PATH, _PACKAGE_DIR)
- 
- # Read the package version
--# We can't use `.__version__` from the library since it's not installed yet
- version_path = os.path.join(_PACKAGE_REAL_PATH, '_version.py')
- with open(version_path, encoding='utf-8') as f:
-     version_globals: Dict[str, Any] = {}
-     version_locals: Mapping[str, object] = {}
--    content = f.read()
--    exec(content, version_globals, version_locals)
-+    exec(f.read(), version_globals, version_locals)
-     repo_version = version_locals['__version__']
- 
- with open('README.md', 'r', encoding='utf-8') as fh:
-     long_description = fh.read()
- 
--# Hide the content between <!-- SETUPTOOLS_LONG_DESCRIPTION_HIDE_BEGIN --> and
--# <!-- SETUPTOOLS_LONG_DESCRIPTION_HIDE_END --> tags in the README
-+# Strip out hidden setup sections
- while True:
-     start_tag = '<!-- SETUPTOOLS_LONG_DESCRIPTION_HIDE_BEGIN -->'
-     end_tag = '<!-- SETUPTOOLS_LONG_DESCRIPTION_HIDE_END -->'
-     start = long_description.find(start_tag)
--    end = long_description.find(end_tag)
-     if start == -1:
--        assert end == -1, 'there should be a balanced number of start and ends'
-         break
--    else:
--        assert end != -1, 'there should be a balanced number of start and ends'
--        long_description = long_description[:start] + \
--            long_description[end + len(end_tag):]
-+    end = long_description.find(end_tag)
-+    long_description = long_description[:start] + long_description[end + len(end_tag):]
- 
- classifiers = [
-     'Programming Language :: Python :: 3',
-@@ -67,51 +68,36 @@ install_requires = [
-     'stanford-stk==0.7.1',
- ]
- 
--extra_deps = {}
--
--extra_deps['gg'] = [
--    'grouped_gemm==0.1.6',
--]
--
--extra_deps['dev'] = [
--    'absl-py',  # TODO: delete when finish removing all absl tests
--    'coverage[toml]==7.4.4',
--    'pytest_codeblocks>=0.16.1,<0.17',
--    'pytest-cov>=4,<5',
--    'pytest>=7.2.1,<8',
--    'pre-commit>=3.4.0,<4',
--]
--
--extra_deps['testing'] = [
--    'mosaicml>=0.24.1',
--]
--
--extra_deps['all'] = list({dep for key, deps in extra_deps.items() for dep in deps if key not in {'testing'}})
-+extra_deps = {
-+    'gg':      ['grouped_gemm==0.1.6'],
-+    'dev':     ['absl-py', 'coverage[toml]==7.4.4', 'pytest_codeblocks>=0.16.1,<0.17',
-+                'pytest-cov>=4,<5', 'pytest>=7.2.1,<8', 'pre-commit>=3.4.0,<4'],
-+    'testing': ['mosaicml>=0.24.1'],
-+}
-+extra_deps['all'] = list({dep for key,deps in extra_deps.items() if key!='testing' for dep in deps})
- 
- cmdclass = {}
- ext_modules = []
- 
--# Only install CUDA extensions if available
-+# Only build CUDA extensions if CUDA is available
- if 'cu' in torch.__version__ and CUDA_HOME is not None:
--
-     cmdclass = {'build_ext': BuildExtension}
--    nvcc_flags = ['--ptxas-options=-v', '--optimize=2']
- 
--    if os.environ.get('TORCH_CUDA_ARCH_LIST'):
--        # Let PyTorch builder to choose device to target for.
--        device_capability = ''
--    else:
--        device_capability_tuple = torch.cuda.get_device_capability()
--        device_capability = f'{device_capability_tuple[0]}{device_capability_tuple[1]}'
--
--    if device_capability:
--        nvcc_flags.append(f'--generate-code=arch=compute_{device_capability},code=sm_{device_capability}',)
-+    # Common NVCC flags
-+    nvcc_flags = ['--ptxas-options=-v', '--optimize=2']
-+    # Add arch if TORCH_CUDA_ARCH_LIST not set
-+    if not os.environ.get('TORCH_CUDA_ARCH_LIST'):
-+        cap = torch.cuda.get_device_capability()
-+        nvcc_flags.append(f'--generate-code=arch=compute_{cap[0]}{cap[1]},code=sm_{cap[0]}{cap[1]}')
- 
-     ext_modules = [
-         CUDAExtension(
--            'megablocks_ops',
--            ['csrc/ops.cu'],
-+            name='megablocks_ops',
-+            sources=['csrc/ops.cu'],
-             include_dirs=['csrc'],
-+            # define_macros=[
-+            #     ('_GLIBCXX_USE_CXX11_ABI', '1' if force_cxx11_abi else '0'),
-+            # ],
-             extra_compile_args={
-                 'cxx': ['-fopenmp'],
-                 'nvcc': nvcc_flags,
-@@ -120,12 +106,11 @@ if 'cu' in torch.__version__ and CUDA_HOME is not None:
-     ]
- elif CUDA_HOME is None:
-     warnings.warn(
--        'Attempted to install CUDA extensions, but CUDA_HOME was None. ' +
--        'Please install CUDA and ensure that the CUDA_HOME environment ' +
--        'variable points to the installation location.',
-+        'Attempted to install CUDA extensions, but CUDA_HOME was None. '
-+        'Please install CUDA and set the CUDA_HOME environment variable.',
-     )
- else:
--    warnings.warn('Warning: No CUDA devices; cuda code will not be compiled.')
-+    warnings.warn('No CUDA devices found; CUDA extensions will not be compiled.')
- 
- setup(
-     name=_PACKAGE_NAME,
+     raise ModuleNotFoundError("No module named 'torch'. `torch` is required to install `MegaBlocks`.",) from e
