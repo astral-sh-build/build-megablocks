@@ -33,7 +33,7 @@ jobs:
         include:
           - python-version: "3.12"
             torch-version: "2.6.0"
-            cuda-version: "12.4.1"
+            cuda-version: "12.8.1"
             cxx11_abi: "FALSE"
           - python-version: "3.12"
             torch-version: "2.6.0"
@@ -72,7 +72,7 @@ jobs:
           echo "MANYLINUX_GLIBC_VERSION=$(python -c "from os import environ as env; print({'2.4': '2_17', '2.5': '2_17', '2.6': '2_24', '2.7': '2_24'}[env['MATRIX_TORCH_VERSION']])")" >> $GITHUB_ENV
           echo "MANYLINUX_CUDA_VERSION=$(python -c "from os import environ as env; print({'118': '11.8', '121': '12.1', '124': '12.4', '126': '12.6', '128': '12.8'}[env['MATRIX_CUDA_VERSION']])")" >> $GITHUB_ENV
           echo "MANYLINUX_CUDA_COMPAT_VERSION=$(python -c "from os import environ as env; print({'118': '11-8', '121': '12-1', '124': '12-4', '126': '12-6', '128': '12-8'}[env['MATRIX_CUDA_VERSION']])")" >> $GITHUB_ENV
-          echo "TORCH_CUDA_ARCH_LIST=$(python -c "from os import environ as env; print({'124': '8.0;8.6;9.0', '128': '8.0;8.6;9.0;10.0;12.0'}[env['MATRIX_CUDA_VERSION']])")" >> $GITHUB_ENV
+          echo "TORCH_CUDA_ARCH_LIST=$(python -c "from os import environ as env; print({'124': '8.0;8.6;9.0', '128': '8.0;8.6;9.0;10.0'}[env['MATRIX_CUDA_VERSION']])")" >> $GITHUB_ENV
           uv venv --python 3.13
           uv pip install cibuildwheel
 
@@ -102,7 +102,7 @@ jobs:
             MATRIX_CUDA_VERSION=${{ env.MATRIX_CUDA_VERSION }}
             MATRIX_TORCH_VERSION=${{ env.MATRIX_TORCH_VERSION }}
             MATRIX_PYTHON_VERSION=${{ env.MATRIX_PYTHON_VERSION }}
-            TORCH_CUDA_ARCH_LIST=${{ env.TORCH_CUDA_ARCH_LIST }}
+            TORCH_CUDA_ARCH_LIST="${{ env.TORCH_CUDA_ARCH_LIST }}"
             MAX_JOBS=1
           CIBW_SKIP: "*musllinux*"
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair -w /tmp/cibuildwheel/repaired_wheel {wheel} --exclude libcuda.so --exclude libcuda.so.1 --exclude libc10.so --exclude libc10_cuda.so --exclude libtorch.so --exclude libtorch_python.so --exclude libtorch_cpu.so --exclude libtorch_cuda.so --exclude libtorch_cuda_cpp.so --exclude libtorch_cuda_cu.so --exclude libcudart.so.11 --exclude libcudart.so.12 --exclude libcudart.so.11.0 --exclude libcudart.so.12.0 --exclude libcurand.so.10 --exclude libcufile_rdma.so --exclude libcufile_rdma.so.1 --exclude libcufile.so.1 --exclude libcufile.so.0 --exclude libcufile.so"

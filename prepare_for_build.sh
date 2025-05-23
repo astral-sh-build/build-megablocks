@@ -16,15 +16,15 @@ fi
 
 DEEPSPEED_VERSION=$1
 
-# Ensure that the DeepSped version is supported.
-if [ ! -d "${ROOT}/build_scripts/patches/${DEEPSPEED_VERSION}" ]; then
-    echo "Error: patches/${DEEPSPEED_VERSION} directory does not exist"
-    exit 1
-fi
+# # Ensure that the DeepSped version is supported.
+# if [ ! -d "${ROOT}/build_scripts/patches/${DEEPSPEED_VERSION}" ]; then
+#     echo "Error: patches/${DEEPSPEED_VERSION} directory does not exist"
+#     exit 1
+# fi
 
 python -c "import torch; print(torch._C._GLIBCXX_USE_CXX11_ABI)"
 
-# Apply patches.
-for patch in "${ROOT}/build_scripts/patches/${DEEPSPEED_VERSION}"/*.patch; do
-    patch -p1 -d ${ROOT} -i ${patch}
-done
+# # Apply patches.
+# for patch in "${ROOT}/build_scripts/patches/${DEEPSPEED_VERSION}"/*.patch; do
+#     patch -p1 -d ${ROOT} -i ${patch}
+# done
