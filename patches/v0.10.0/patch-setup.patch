@@ -1,0 +1,19 @@
+diff --git a/setup.py b/setup.py
+index 26cecf4..c37a1a9 100644
+--- a/setup.py
++++ b/setup.py
+@@ -9,10 +9,14 @@ from typing import Any, Dict, Mapping
+ 
+ from setuptools import find_packages, setup
+ 
++# See: https://github.com/Dao-AILab/flash-attention/blob/0e79d71175346c7151f49ab6287084a052bc9613/setup.py#L196
++force_cxx11_abi = os.getenv("MEGABLOCKS_FORCE_CXX11_ABI", "FALSE") == "TRUE"
++
+ # We require torch in setup.py to build cpp extensions "ahead of time"
+ # More info here: # https://pytorch.org/tutorials/advanced/cpp_extension.html
+ try:
+     import torch
++    torch._C._GLIBCXX_USE_CXX11_ABI = force_cxx11_abi
+     from torch.utils.cpp_extension import CUDA_HOME, BuildExtension, CUDAExtension
+ except ModuleNotFoundError as e:
+     raise ModuleNotFoundError("No module named 'torch'. `torch` is required to install `MegaBlocks`.",) from e
