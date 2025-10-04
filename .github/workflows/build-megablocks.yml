@@ -1,17 +1,21 @@
 name: MegaBlocks
 
 permissions:
-  contents: read
+  contents: write
   actions: write
 
 on:
+  pull_request:
+    branches: [main]
   workflow_dispatch:
     inputs:
       MEGABLOCKS_VERSION:
         description: "MegaBlocks version"
         required: true
-        default: "v0.9.0"
+        default: "v0.10.0"
         type: string
+  release:
+    types: [created]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}-${{ github.event.pull_request.number || github.sha }}
@@ -22,34 +26,42 @@ jobs:
     name: Build Wheel
     runs-on: gpu
     env:
-      MEGABLOCKS_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.MEGABLOCKS_VERSION || 'v0.9.0' }}
+      MEGABLOCKS_VERSION: ${{ github.event_name == 'release' && github.ref_name || (github.event_name == 'workflow_dispatch' && inputs.MEGABLOCKS_VERSION || 'v0.10.0') }}
 
     strategy:
       fail-fast: false
       matrix:
         include:
           - python-version: "3.10"
-            torch-version: "2.6.0"
+            torch-version: "2.7.0"
             cuda-version: "12.8.1"
-            cxx11_abi: "FALSE"
+            cxx11_abi: "TRUE"
+          - python-version: "3.11"
+            torch-version: "2.7.0"
+            cuda-version: "12.8.1"
+            cxx11_abi: "TRUE"
+          - python-version: "3.12"
+            torch-version: "2.7.0"
+            cuda-version: "12.8.1"
+            cxx11_abi: "TRUE"
+          - python-version: "3.13"
+            torch-version: "2.7.0"
+            cuda-version: "12.8.1"
+            cxx11_abi: "TRUE"
           - python-version: "3.10"
-            torch-version: "2.6.0"
+            torch-version: "2.7.1"
             cuda-version: "12.8.1"
             cxx11_abi: "TRUE"
           - python-version: "3.11"
-            torch-version: "2.6.0"
-            cuda-version: "12.8.1"
-            cxx11_abi: "FALSE"
-          - python-version: "3.11"
-            torch-version: "2.6.0"
+            torch-version: "2.7.1"
             cuda-version: "12.8.1"
             cxx11_abi: "TRUE"
           - python-version: "3.12"
-            torch-version: "2.6.0"
+            torch-version: "2.7.1"
             cuda-version: "12.8.1"
-            cxx11_abi: "FALSE"
-          - python-version: "3.12"
-            torch-version: "2.6.0"
+            cxx11_abi: "TRUE"
+          - python-version: "3.13"
+            torch-version: "2.7.1"
             cuda-version: "12.8.1"
             cxx11_abi: "TRUE"
 
@@ -73,6 +85,8 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@6b9c6063abd6010835644d4c2e1bef4cf5cd0fca # v6
+        with:
+          enable-cache: false
 
       - name: Set CUDA and PyTorch versions
         run: |
@@ -136,7 +150,16 @@ jobs:
           ls dist
 
       - uses: actions/upload-artifact@v4
+        if: github.event_name != 'release'
         with:
           name: ${{env.wheel_name}}
           path: dist/${{env.wheel_name}}
           if-no-files-found: error
+
+      - name: Upload wheels to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836 # v2
+        with:
+          files: ./dist/*.whl
+          tag_name: ${{ github.ref_name }}
+          append_body: true
