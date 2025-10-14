@@ -92,7 +92,7 @@ jobs:
             torch-version: "2.7.1"
             cuda-version: "12.8.1"
             cxx11_abi: "TRUE"
-            runner: megablocks-arm64
+            runner: gpu
             arch: aarch64
 
     steps:
