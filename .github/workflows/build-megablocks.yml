@@ -24,7 +24,7 @@ concurrency:
 jobs:
   build_wheels:
     name: Build Wheel
-    runs-on: gpu
+    runs-on: ${{ matrix.runner }}
     env:
       MEGABLOCKS_VERSION: ${{ github.event_name == 'release' && github.ref_name || (github.event_name == 'workflow_dispatch' && inputs.MEGABLOCKS_VERSION || 'v0.10.0') }}
 
@@ -36,34 +36,64 @@ jobs:
             torch-version: "2.7.0"
             cuda-version: "12.8.1"
             cxx11_abi: "TRUE"
+            runner: gpu
+            arch: x86_64
+
           - python-version: "3.11"
             torch-version: "2.7.0"
             cuda-version: "12.8.1"
             cxx11_abi: "TRUE"
+            runner: gpu
+            arch: x86_64
+
           - python-version: "3.12"
             torch-version: "2.7.0"
             cuda-version: "12.8.1"
             cxx11_abi: "TRUE"
+            runner: gpu
+            arch: x86_64
+
           - python-version: "3.13"
             torch-version: "2.7.0"
             cuda-version: "12.8.1"
             cxx11_abi: "TRUE"
+            runner: gpu
+            arch: x86_64
+
           - python-version: "3.10"
             torch-version: "2.7.1"
             cuda-version: "12.8.1"
             cxx11_abi: "TRUE"
+            runner: gpu
+            arch: x86_64
+
           - python-version: "3.11"
             torch-version: "2.7.1"
             cuda-version: "12.8.1"
             cxx11_abi: "TRUE"
+            runner: gpu
+            arch: x86_64
+
           - python-version: "3.12"
             torch-version: "2.7.1"
             cuda-version: "12.8.1"
             cxx11_abi: "TRUE"
+            runner: gpu
+            arch: x86_64
+
           - python-version: "3.13"
             torch-version: "2.7.1"
             cuda-version: "12.8.1"
             cxx11_abi: "TRUE"
+            runner: gpu
+            arch: x86_64
+
+          - python-version: "3.13"
+            torch-version: "2.7.1"
+            cuda-version: "12.8.1"
+            cxx11_abi: "FALSE"
+            runner: ubuntu-24.04-arm
+            arch: aarch64
 
     steps:
       - name: Checkout MegaBlocks
@@ -93,6 +123,7 @@ jobs:
           echo "MATRIX_CUDA_VERSION=$(echo ${{ matrix.cuda-version }} | awk -F \. {'print $1 $2'})" >> $GITHUB_ENV
           echo "MATRIX_TORCH_VERSION=$(echo ${{ matrix.torch-version }} | awk -F \. {'print $1 "." $2'})" >> $GITHUB_ENV
           echo "MATRIX_PYTHON_VERSION=$(echo ${{ matrix.python-version }} | awk -F \. {'print $1 $2'})" >> $GITHUB_ENV
+          echo "MATRIX_ARCH=$(echo ${{ matrix.arch }})" >> $GITHUB_ENV
 
       - name: Install cibuildwheel
         run: |
@@ -108,8 +139,9 @@ jobs:
         env:
           CIBW_BUILD: cp${{ env.MATRIX_PYTHON_VERSION }}-*64
           CIBW_MANYLINUX_X86_64_IMAGE: pytorch/manylinux2_28-builder:cuda${{ env.MANYLINUX_CUDA_VERSION }}
+          CIBW_MANYLINUX_AARCH64_IMAGE: pytorch/manylinuxaarch64-builder:cuda${{ env.MANYLINUX_CUDA_VERSION }}
           CIBW_BEFORE_BUILD_LINUX: >
-            (yes | dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo || true) &&
+            (yes | dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/${{ env.MATRIX_ARCH }}/cuda-rhel8.repo || true) &&
             (yum install -y cuda-driver-devel-${{ env.MANYLINUX_CUDA_COMPAT_VERSION }} || true) &&
             (yum install -y glibc glibc-devel || apt-get install -y libc6-dev || apk add --update --no-cache musl-dev || true) &&
             (yum install -y libffi-devel || apt-get install -y libffi-devel || apk add --update --no-cache libffi-devel || true) &&
@@ -123,7 +155,7 @@ jobs:
             CUDA_HOME="/usr/local/cuda-${{ env.MANYLINUX_CUDA_VERSION }}"
             LIBRARY_PATH="/usr/lib64"
             LD_LIBRARY_PATH="/usr/lib64"
-            LDFLAGS="-ldl -L/usr/local/cuda-${{ env.MANYLINUX_CUDA_VERSION }}/targets/x86_64-linux/lib/stubs"
+            LDFLAGS="-ldl -L/usr/local/cuda-${{ env.MANYLINUX_CUDA_VERSION }}/targets/${{ env.MATRIX_ARCH }}-linux/lib/stubs"
             AUDITWHEEL_PLAT="manylinux_${{ env.MANYLINUX_GLIBC_VERSION }}_$(uname -m)"
             MATRIX_CUDA_VERSION=${{ env.MATRIX_CUDA_VERSION }}
             MATRIX_TORCH_VERSION=${{ env.MATRIX_TORCH_VERSION }}
