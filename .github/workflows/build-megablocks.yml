@@ -75,7 +75,7 @@ jobs:
 
       - name: Install cibuildwheel
         run: |
-          echo "MANYLINUX_GLIBC_VERSION=$(python -c "from os import environ as env; print({'2.4': '2_17', '2.5': '2_17', '2.6': '2_24', '2.7': '2_24'}[env['MATRIX_TORCH_VERSION']])")" >> $GITHUB_ENV
+          echo "MANYLINUX_GLIBC_VERSION=$(python -c "from os import environ as env; print({'2.4': '2_17', '2.5': '2_17', '2.6': '2_24', '2.7': '2_24', '2.8': '2_24'}[env['MATRIX_TORCH_VERSION']])")" >> $GITHUB_ENV
           echo "MANYLINUX_CUDA_VERSION=$(python -c "from os import environ as env; print({'118': '11.8', '121': '12.1', '124': '12.4', '126': '12.6', '128': '12.8'}[env['MATRIX_CUDA_VERSION']])")" >> $GITHUB_ENV
           echo "MANYLINUX_CUDA_COMPAT_VERSION=$(python -c "from os import environ as env; print({'118': '11-8', '121': '12-1', '124': '12-4', '126': '12-6', '128': '12-8'}[env['MATRIX_CUDA_VERSION']])")" >> $GITHUB_ENV
           uv venv --python 3.13
@@ -96,7 +96,7 @@ jobs:
             (yum install -y libffi-devel || apt-get install -y libffi-devel || apk add --update --no-cache libffi-devel || true) &&
             pip install setuptools wheel &&
             pip install typing-extensions==4.12.2 &&
-            export TORCH_CUDA_VERSION=$(python -c "from os import environ as env; minv = {'2.4': 118, '2.5': 118, '2.6': 118, '2.7': 118}[env['MATRIX_TORCH_VERSION']]; maxv = {'2.4': 124, '2.5': 124, '2.6': 126, '2.7': 128}[env['MATRIX_TORCH_VERSION']]; print(minv if int(env['MATRIX_CUDA_VERSION']) < 120 else maxv)") &&
+            export TORCH_CUDA_VERSION=$(python -c "from os import environ as env; minv = {'2.4': 118, '2.5': 118, '2.6': 118, '2.7': 118, '2.8': 118}[env['MATRIX_TORCH_VERSION']]; maxv = {'2.4': 124, '2.5': 124, '2.6': 126, '2.7': 128}[env['MATRIX_TORCH_VERSION']]; print(minv if int(env['MATRIX_CUDA_VERSION']) < 120 else maxv)") &&
             pip install --no-cache-dir torch==${{ matrix.torch-version }} --index-url https://download.pytorch.org/whl/cu${TORCH_CUDA_VERSION} &&
             bash build_scripts/prepare_for_build.sh ${{ env.MEGABLOCKS_VERSION }}
           CIBW_ENVIRONMENT: >
