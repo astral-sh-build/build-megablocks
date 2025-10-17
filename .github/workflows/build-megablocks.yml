@@ -1,8 +1,6 @@
 name: MegaBlocks
 
-permissions:
-  contents: write
-  actions: write
+permissions: {}
 
 on:
   pull_request:
@@ -48,6 +46,10 @@ jobs:
     runs-on: gpu
     env:
       MEGABLOCKS_VERSION: ${{ github.event_name == 'release' && github.ref_name || (github.event_name == 'workflow_dispatch' && inputs.MEGABLOCKS_VERSION || 'v0.10.0') }}
+
+    permissions:
+      contents: write
+      actions: write
 
     strategy:
       fail-fast: false
