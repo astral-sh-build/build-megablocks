@@ -139,6 +139,7 @@ jobs:
             TORCH_CUDA_ARCH_LIST="8.0;8.6;9.0;10.0"
             TORCH_CUDA_VERSION=${{ env.TORCH_CUDA_VERSION }}
             MEGABLOCKS_FORCE_CXX11_ABI=${{ matrix.cxx11-abi }}
+            CI_AUDITWHEEL_EXCLUDES="${{ env.CI_AUDITWHEEL_EXCLUDES }}"
           CIBW_SKIP: "*musllinux*"
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair -w /tmp/cibuildwheel/repaired_wheel {wheel} ${CI_AUDITWHEEL_EXCLUDES}"
           CIBW_CONTAINER_ENGINE: "docker; create_args: --gpus all"
