@@ -9,6 +9,13 @@ import json
 
 from packaging.version import Version
 
+# NOTE(ww): Megablocks doesn't support PyTorch 2.8 or 2.9 yet.
+# Once it does, we can add them here to widen the matrix below,
+# or just remove this filter entirely.
+MEGABLOCKS_SUPPORTED_TORCH_VERSIONS = [
+    "2.7.1",
+]
+
 ARCH_TORCH_PAIRS = {
     "x86_64": ["2.7.1", "2.8.0", "2.9.0"],
     # PyTorch does not provide aarch64 wheels for 2.8.0.
@@ -100,6 +107,9 @@ def main() -> None:
     rows = []
     for target_arch, torch_versions in ARCH_TORCH_PAIRS.items():
         for torch_version in torch_versions:
+            if torch_version not in MEGABLOCKS_SUPPORTED_TORCH_VERSIONS:
+                continue
+
             for python_version in TORCH_PYTHON_SUPPORT[torch_version]:
                 torch_version_parsed = Version(torch_version)
                 torch_x_y = f"{torch_version_parsed.major}.{torch_version_parsed.minor}"

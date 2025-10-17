@@ -120,6 +120,7 @@ jobs:
             (yum install -y cuda-driver-devel-${{ env.MANYLINUX_CUDA_COMPAT_VERSION }} || true) &&
             (yum install -y glibc glibc-devel || apt-get install -y libc6-dev || apk add --update --no-cache musl-dev || true) &&
             (yum install -y libffi-devel || apt-get install -y libffi-devel || apk add --update --no-cache libffi-devel || true) &&
+            (yum install -y ninja-build || apt-get install -y ninja-build || apk add --update --no-cache ninja || true) &&
             pip install setuptools wheel &&
             pip install typing-extensions==4.12.2 &&
             pip install --no-cache-dir torch==${{ matrix.torch-version }} --index-url https://download.pytorch.org/whl/cu${TORCH_CUDA_VERSION} &&
@@ -136,6 +137,7 @@ jobs:
             MATRIX_TORCH_VERSION=${{ env.MATRIX_TORCH_VERSION }}
             MATRIX_PYTHON_VERSION=${{ env.MATRIX_PYTHON_VERSION }}
             TORCH_CUDA_ARCH_LIST="8.0;8.6;9.0;10.0"
+            TORCH_CUDA_VERSION=${{ env.TORCH_CUDA_VERSION }}
             MEGABLOCKS_FORCE_CXX11_ABI=${{ matrix.cxx11-abi }}
           CIBW_SKIP: "*musllinux*"
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair -w /tmp/cibuildwheel/repaired_wheel {wheel} ${CI_AUDITWHEEL_EXCLUDES}"
