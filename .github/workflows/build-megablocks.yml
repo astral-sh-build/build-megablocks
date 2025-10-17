@@ -122,7 +122,6 @@ jobs:
             (yum install -y libffi-devel || apt-get install -y libffi-devel || apk add --update --no-cache libffi-devel || true) &&
             pip install setuptools wheel &&
             pip install typing-extensions==4.12.2 &&
-            export TORCH_CUDA_VERSION=$(python -c "from os import environ as env; minv = {'2.4': 118, '2.5': 118, '2.6': 118, '2.7': 118, '2.8': 118, '2.9': 126}[env['MATRIX_TORCH_VERSION']]; maxv = {'2.4': 124, '2.5': 124, '2.6': 126, '2.7': 128, '2.8': 128, '2.9': 130}[env['MATRIX_TORCH_VERSION']]; print(minv if int(env['MATRIX_CUDA_VERSION']) < 120 else maxv)") &&
             pip install --no-cache-dir torch==${{ matrix.torch-version }} --index-url https://download.pytorch.org/whl/cu${TORCH_CUDA_VERSION} &&
             bash build_scripts/prepare_for_build.sh ${{ env.MEGABLOCKS_VERSION }}
           # TODO: `TORCH_CUDA_ARCH_LIST` should probably be in the matrix.
