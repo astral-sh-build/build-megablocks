@@ -75,7 +75,7 @@ jobs:
 
       - name: Install cibuildwheel
         run: |
-          echo "MANYLINUX_GLIBC_VERSION=$(python -c "from os import environ as env; print({'2.4': '2_17', '2.5': '2_17', '2.6': '2_24', '2.7': '2_24', '2.8': '2_24', '2.9': '2_24'}[env['MATRIX_TORCH_VERSION']])")" >> $GITHUB_ENV
+          echo "MANYLINUX_GLIBC_VERSION=$(python -c "from os import environ as env; print({'2.4': '2_17', '2.5': '2_17', '2.6': '2_24', '2.7': '2_24', '2.8': '2_28', '2.9': '2_28'}[env['MATRIX_TORCH_VERSION']])")" >> $GITHUB_ENV
           echo "MANYLINUX_CUDA_VERSION=$(python -c "from os import environ as env; print({'118': '11.8', '121': '12.1', '124': '12.4', '126': '12.6', '128': '12.8'}[env['MATRIX_CUDA_VERSION']])")" >> $GITHUB_ENV
           echo "MANYLINUX_CUDA_COMPAT_VERSION=$(python -c "from os import environ as env; print({'118': '11-8', '121': '12-1', '124': '12-4', '126': '12-6', '128': '12-8'}[env['MATRIX_CUDA_VERSION']])")" >> $GITHUB_ENV
           uv venv --python 3.13
