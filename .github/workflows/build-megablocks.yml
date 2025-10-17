@@ -56,13 +56,6 @@ jobs:
       matrix:
         include: ${{ fromJSON(needs.plan-matrix.outputs.matrix) }}
 
-        # python-version: ["3.10", "3.11", "3.12", "3.13"]
-        # torch-version: ["2.7.0", "2.7.1", "2.8.0", "2.9.0"]
-        # cuda-version: ["12.8.1"]
-        # cxx11_abi: ["TRUE"]
-        # runner: ["gpu"]
-        # arch: ["x86_64", "aarch64"]
-
     steps:
       - name: Checkout MegaBlocks
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
