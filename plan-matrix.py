@@ -22,7 +22,6 @@ ARCH_TORCH_PAIRS = {
     "aarch64": ["2.7.1", "2.9.0"],
 }
 
-
 # Supported Python versions for each PyTorch version.
 # We use these to filter out the matrix.
 TORCH_PYTHON_SUPPORT = {
@@ -54,7 +53,6 @@ TORCH_GLIBC_VERSION: dict[str, str] = {
     "2.8": "2_28",
     "2.9": "2_28",
 }
-
 
 AUDITWHEEL_BLANKET_EXCLUDES = [
     "libcuda.so",
@@ -184,6 +182,14 @@ def main() -> None:
         row["TORCH_CUDA_VERSION"] = (
             f"{torch_cuda_version.major}{torch_cuda_version.minor}"
         )
+
+        # RUNNER: the GitHub Actions runner to use.
+        if row["target-arch"] == "x86_64":
+            row["RUNNER"] = "depot-ubuntu-24.04-64"
+        elif row["target-arch"] == "aarch64":
+            row["RUNNER"] = "depot-ubuntu-24.04-arm-64"
+        else:
+            raise ValueError(f"Unknown target arch: {row['target-arch']}")
 
     print(json.dumps(rows))
 
