@@ -43,7 +43,7 @@ jobs:
   build-wheels:
     name: Build Wheel
     needs: [plan-matrix]
-    runs-on: gpu
+    runs-on: depot-ubuntu-latest-64
     env:
       MEGABLOCKS_VERSION: ${{ github.event_name == 'release' && github.ref_name || (github.event_name == 'workflow_dispatch' && inputs.MEGABLOCKS_VERSION || 'v0.10.0') }}
 
@@ -135,7 +135,6 @@ jobs:
             CI_AUDITWHEEL_EXCLUDES="${{ env.CI_AUDITWHEEL_EXCLUDES }}"
           CIBW_SKIP: "*musllinux*"
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair -w /tmp/cibuildwheel/repaired_wheel {wheel} ${CI_AUDITWHEEL_EXCLUDES}"
-          CIBW_CONTAINER_ENGINE: "docker; create_args: --gpus all"
           CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
 
       - name: Log Built Wheels
