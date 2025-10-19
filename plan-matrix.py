@@ -43,6 +43,16 @@ PYTORCH_CUDA_VERSIONS: dict[str, list[str]] = {
     "2.9": ["12.9.0", "13.0.0"],
 }
 
+# CUDA architectures to build against for each PyTorch version.
+TORCH_CUDA_ARCH_LIST = {
+    # https://github.com/pytorch/pytorch/blob/134179474539648ba7dee1317959529fbd0e7f89/.ci/manywheel/build_cuda.sh#L55
+    "2.7": "7.5;8.0;8.6;9.0;10.0;12.0+PTX",
+    # https://github.com/pytorch/pytorch/blob/ba56102387ef21a3b04b357e5b183d48f0afefc7/.ci/manywheel/build_cuda.sh#L56
+    "2.8": "7.5;8.0;8.6;9.0;10.0;12.0+PTX",
+    # https://github.com/pytorch/pytorch/blob/0fabc3ba44823f257e70ce397d989c8de5e362c1/.ci/manywheel/build_cuda.sh#L56
+    "2.9": "7.5;8.0;8.6;9.0;10.0;12.0+PTX",
+}
+
 # The glibc version to use for each PyTorch version, for manylinux builds.
 TORCH_GLIBC_VERSION: dict[str, str] = {
     "2.4": "2_17",
@@ -181,6 +191,8 @@ def main() -> None:
         row["TORCH_CUDA_VERSION"] = (
             f"{torch_cuda_version.major}{torch_cuda_version.minor}"
         )
+
+        row["TORCH_CUDA_ARCH_LIST"] = TORCH_CUDA_ARCH_LIST[torch_x_y]
 
         # RUNNER: the GitHub Actions runner to use.
         if row["target-arch"] == "x86_64":
