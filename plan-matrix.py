@@ -24,6 +24,9 @@ ARCH_TORCH_PAIRS = {
 # Supported Python versions for each PyTorch version.
 # See: https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix
 TORCH_PYTHON_SUPPORT = {
+    "2.4": ["3.9", "3.10", "3.11", "3.12"],
+    "2.5": ["3.9", "3.10", "3.11", "3.12"],
+    "2.6": ["3.9", "3.10", "3.11", "3.12"],
     "2.7": ["3.9", "3.10", "3.11", "3.12", "3.13"],
     "2.8": ["3.9", "3.10", "3.11", "3.12", "3.13"],
     "2.9": ["3.10", "3.11", "3.12", "3.13", "3.14"],
@@ -32,6 +35,9 @@ TORCH_PYTHON_SUPPORT = {
 # Minimum and maximum CUDA versions for each PyTorch version.
 # See: https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix
 PYTORCH_CUDA_RANGES: dict[str, tuple[str, str]] = {
+    "2.4": ("11.8", "12.4"),
+    "2.5": ("11.8", "12.4"),
+    "2.6": ("11.8", "12.6"),
     "2.7": ("11.8", "12.8"),
     "2.8": ("11.8", "12.9"),
     "2.9": ("12.6", "13.0"),
