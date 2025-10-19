@@ -97,6 +97,13 @@ AUDITWHEEL_CUDA_VERSION_EXCLUDES = {
     ],
 }
 
+# CXX11 ABI configuration for each PyTorch version
+TORCH_CXX11_ABI = {
+    "2.7": ["TRUE"],
+    "2.8": ["TRUE"],
+    "2.9": ["TRUE"],
+}
+
 # Matrix exclusions.
 EXCLUSIONS = [
     # No exclusions yet.
@@ -122,19 +129,17 @@ def main() -> None:
                 torch_x_y = f"{torch_version_parsed.major}.{torch_version_parsed.minor}"
                 cuda_versions = PYTORCH_CUDA_VERSIONS[torch_x_y]
                 for cuda_version in cuda_versions:
-                    row = {
-                        "target-arch": target_arch,
-                        "torch-version": str(torch_version_parsed),
-                        "python-version": python_version,
-                        "cuda-version": cuda_version,
-                        # TODO(ww): Parametrize this? The original
-                        # unrolled matrix had both TRUE and FALSE in ways
-                        # that I couldn't discern a pattern for.
-                        "cxx11-abi": "TRUE",
-                    }
+                    for cxx11_abi in TORCH_CXX11_ABI[torch_x_y]:
+                        row = {
+                            "target-arch": target_arch,
+                            "torch-version": str(torch_version_parsed),
+                            "python-version": python_version,
+                            "cuda-version": cuda_version,
+                            "cxx11-abi": cxx11_abi,
+                        }
 
-                    if row not in EXCLUSIONS:
-                        rows.append(row)
+                        if row not in EXCLUSIONS:
+                            rows.append(row)
 
     # Transform each row to add various nice-to-have representations of fields.
     for row in rows:
