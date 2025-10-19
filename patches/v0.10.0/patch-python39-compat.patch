@@ -1,0 +1,22 @@
+diff --git a/megablocks/layers/activation_fn.py b/megablocks/layers/activation_fn.py
+index a31770b..e7e26a1 100644
+--- a/megablocks/layers/activation_fn.py
++++ b/megablocks/layers/activation_fn.py
+@@ -1,7 +1,7 @@
+ # Copyright 2024 Databricks
+ # SPDX-License-Identifier: Apache-2.0
+ 
+-from typing import Any, Callable, Union
++from typing import Any, Callable, Tuple, Union
+ 
+ import torch
+ from stk import Matrix
+@@ -12,7 +12,7 @@ def act_fn(
+     function: Callable,
+     return_grad_fn: bool = False,
+     **kwargs,
+-) -> Union[tuple[Matrix, Any] | Matrix]:
++) -> Union[Tuple[Matrix, Any], Matrix]:
+     assert isinstance(x, Matrix)
+     with torch.set_grad_enabled(torch.is_grad_enabled() or return_grad_fn):
+         if return_grad_fn:
