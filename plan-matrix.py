@@ -18,8 +18,7 @@ MEGABLOCKS_SUPPORTED_TORCH_VERSIONS = [
 
 ARCH_TORCH_PAIRS = {
     "x86_64": ["2.7.1", "2.8.0", "2.9.0"],
-    # PyTorch does not provide aarch64 wheels for 2.8.0.
-    "aarch64": ["2.7.1", "2.9.0"],
+    "aarch64": ["2.7.1", "2.8.0", "2.9.0"],
 }
 
 # Supported Python versions for each PyTorch version.
@@ -41,7 +40,7 @@ PYTORCH_CUDA_RANGES: dict[str, tuple[str, str]] = {
 PYTORCH_CUDA_VERSIONS: dict[str, list[str]] = {
     "2.7": ["12.8.0"],
     "2.8": ["12.9.0"],
-    "2.9": ["13.0.0"],
+    "2.9": ["12.9.0", "13.0.0"],
 }
 
 # The glibc version to use for each PyTorch version, for manylinux builds.
