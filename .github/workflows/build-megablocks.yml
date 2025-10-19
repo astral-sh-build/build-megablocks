@@ -109,6 +109,7 @@ jobs:
           echo "MANYLINUX_GLIBC_VERSION=$(echo ${{ matrix.MANYLINUX_GLIBC_VERSION }})" >> $GITHUB_ENV
           echo "CI_AUDITWHEEL_EXCLUDES=$(echo ${{ matrix.CI_AUDITWHEEL_EXCLUDES }})" >> $GITHUB_ENV
           echo "TORCH_CUDA_VERSION=$(echo ${{ matrix.TORCH_CUDA_VERSION }})" >> $GITHUB_ENV
+          echo "TORCH_CUDA_ARCH_LIST=$(echo ${{ matrix.TORCH_CUDA_ARCH_LIST }})" >> $GITHUB_ENV
 
       - name: Install cibuildwheel
         run: |
@@ -128,7 +129,6 @@ jobs:
             pip install typing-extensions==4.12.2 &&
             pip install --no-cache-dir torch==${{ matrix.torch-version }} --index-url https://download.pytorch.org/whl/cu${TORCH_CUDA_VERSION} &&
             bash build_scripts/prepare_for_build.sh ${{ steps.megablocks-version.outputs.version }}
-          # TODO: `TORCH_CUDA_ARCH_LIST` should probably be in the matrix.
           CIBW_ENVIRONMENT: >
             PATH=$PATH:/root/.local/bin
             CUDA_HOME="/usr/local/cuda-${{ env.MANYLINUX_CUDA_VERSION }}"
@@ -139,7 +139,7 @@ jobs:
             MATRIX_CUDA_VERSION=${{ env.MATRIX_CUDA_VERSION }}
             MATRIX_TORCH_VERSION=${{ env.MATRIX_TORCH_VERSION }}
             MATRIX_PYTHON_VERSION=${{ env.MATRIX_PYTHON_VERSION }}
-            TORCH_CUDA_ARCH_LIST="${{ env.TORCH_CUDA_ARCH_LIST }}"
+            TORCH_CUDA_ARCH_LIST=${{ env.TORCH_CUDA_ARCH_LIST }}
             TORCH_CUDA_VERSION=${{ env.TORCH_CUDA_VERSION }}
             MEGABLOCKS_FORCE_CXX11_ABI=${{ matrix.cxx11-abi }}
             CI_AUDITWHEEL_EXCLUDES="${{ env.CI_AUDITWHEEL_EXCLUDES }}"

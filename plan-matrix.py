@@ -44,11 +44,12 @@ PYTORCH_CUDA_VERSIONS: dict[str, list[str]] = {
 }
 
 # CUDA architectures to build against for each PyTorch version.
-#
-# See: https://github.com/pytorch/pytorch/blob/c4f6619330bdac5bf4addb9070ecb42994202e1f/.ci/manywheel/build_cuda.sh#L63C31-L63C64
 TORCH_CUDA_ARCH_LIST = {
+    # https://github.com/pytorch/pytorch/blob/134179474539648ba7dee1317959529fbd0e7f89/.ci/manywheel/build_cuda.sh#L55
     "2.7": "7.5;8.0;8.6;9.0;10.0;12.0+PTX",
+    # https://github.com/pytorch/pytorch/blob/ba56102387ef21a3b04b357e5b183d48f0afefc7/.ci/manywheel/build_cuda.sh#L56
     "2.8": "7.5;8.0;8.6;9.0;10.0;12.0+PTX",
+    # https://github.com/pytorch/pytorch/blob/0fabc3ba44823f257e70ce397d989c8de5e362c1/.ci/manywheel/build_cuda.sh#L56
     "2.9": "7.5;8.0;8.6;9.0;10.0;12.0+PTX",
 }
 
