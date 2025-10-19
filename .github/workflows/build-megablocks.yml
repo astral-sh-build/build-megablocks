@@ -44,8 +44,6 @@ jobs:
     name: Build Wheel
     needs: [plan-matrix]
     runs-on: ${{ matrix.RUNNER }}
-    env:
-      MEGABLOCKS_VERSION: ${{ github.event_name == 'release' && github.ref_name || (github.event_name == 'workflow_dispatch' && inputs.MEGABLOCKS_VERSION || 'v0.10.0') }}
 
     permissions:
       contents: write
@@ -57,11 +55,33 @@ jobs:
         include: ${{ fromJSON(needs.plan-matrix.outputs.matrix) }}
 
     steps:
+      - name: Determine MegaBlocks version
+        id: megablocks-version
+        run: |
+          # Extract MegaBlocks version from tag. Tags can be either:
+          # - v0.10.0 (legacy format; maps directly to MegaBlocks version)
+          # - v0.10.0-r1 (new format; strip -rN suffix to get MegaBlocks version)
+          if [ "${GITHUB_EVENT_NAME}" = "release" ]; then
+            TAG="${GITHUB_REF_NAME}"
+            # Remove -rN suffix if present
+            MEGABLOCKS_VERSION="${TAG%-r*}"
+          elif [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            MEGABLOCKS_VERSION="${INPUTS_MEGABLOCKS_VERSION}"
+          else
+            MEGABLOCKS_VERSION="v0.10.0"
+          fi
+          echo "version=${MEGABLOCKS_VERSION}" >> $GITHUB_OUTPUT
+          echo "Using MegaBlocks version: ${MEGABLOCKS_VERSION}"
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          INPUTS_MEGABLOCKS_VERSION: ${{ inputs.MEGABLOCKS_VERSION }}
+
       - name: Checkout MegaBlocks
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           repository: databricks/megablocks
-          ref: ${{ env.MEGABLOCKS_VERSION }}
+          ref: ${{ steps.megablocks-version.outputs.version }}
           persist-credentials: false
 
       - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
@@ -107,7 +127,7 @@ jobs:
             pip install setuptools wheel &&
             pip install typing-extensions==4.12.2 &&
             pip install --no-cache-dir torch==${{ matrix.torch-version }} --index-url https://download.pytorch.org/whl/cu${TORCH_CUDA_VERSION} &&
-            bash build_scripts/prepare_for_build.sh ${{ env.MEGABLOCKS_VERSION }}
+            bash build_scripts/prepare_for_build.sh ${{ steps.megablocks-version.outputs.version }}
           # TODO: `TORCH_CUDA_ARCH_LIST` should probably be in the matrix.
           CIBW_ENVIRONMENT: >
             PATH=$PATH:/root/.local/bin
