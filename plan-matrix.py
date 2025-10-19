@@ -47,9 +47,9 @@ PYTORCH_CUDA_VERSIONS: dict[str, list[str]] = {
 #
 # See: https://github.com/pytorch/pytorch/blob/c4f6619330bdac5bf4addb9070ecb42994202e1f/.ci/manywheel/build_cuda.sh#L63C31-L63C64
 TORCH_CUDA_ARCH_LIST = {
-    "2.7": "7.0;7.5;8.0;8.6;9.0;10.0;12.0+PTX",
-    "2.8": "7.0;7.5;8.0;8.6;9.0;10.0;12.0+PTX",
-    "2.9": "7.0;7.5;8.0;8.6;9.0;10.0;12.0+PTX",
+    "2.7": "7.5;8.0;8.6;9.0;10.0;12.0+PTX",
+    "2.8": "7.5;8.0;8.6;9.0;10.0;12.0+PTX",
+    "2.9": "7.5;8.0;8.6;9.0;10.0;12.0+PTX",
 }
 
 # The glibc version to use for each PyTorch version, for manylinux builds.
