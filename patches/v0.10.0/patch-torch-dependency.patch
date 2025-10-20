@@ -1,0 +1,25 @@
+diff --git a/pyproject.toml b/pyproject.toml
+index d847110..4887b56 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -3,7 +3,7 @@
+ 
+ # build requirements
+ [build-system]
+-requires = ["setuptools < 79.0.0", "torch >= 2.7.0, < 2.7.1"]
++requires = ["setuptools < 79.0.0", "torch == 2.7.*"]
+ build-backend = "setuptools.build_meta"
+ 
+ # Pytest
+diff --git a/setup.py b/setup.py
+index e625235..7ac553e 100644
+--- a/setup.py
++++ b/setup.py
+@@ -62,7 +62,7 @@ classifiers = [
+ install_requires = [
+     'numpy>=1.21.5,<2.1.0',
+     'packaging>=21.3.0,<24.2',
+-    'torch>=2.7.0,<2.7.1',
++    'torch==2.7.*',
+     'stanford-stk==0.7.1',
+ ]
