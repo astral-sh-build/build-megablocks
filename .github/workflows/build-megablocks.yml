@@ -110,7 +110,6 @@ jobs:
           echo "MANYLINUX_CUDA_COMPAT_VERSION=$(echo ${{ matrix.MANYLINUX_CUDA_COMPAT_VERSION }})" >> $GITHUB_ENV
           echo "MANYLINUX_GLIBC_VERSION=$(echo ${{ matrix.MANYLINUX_GLIBC_VERSION }})" >> $GITHUB_ENV
           echo "CI_AUDITWHEEL_EXCLUDES=$(echo ${{ matrix.CI_AUDITWHEEL_EXCLUDES }})" >> $GITHUB_ENV
-          echo "TORCH_CUDA_VERSION=$(echo ${{ matrix.TORCH_CUDA_VERSION }})" >> $GITHUB_ENV
           # Avoid `echo` quoting to avoid interpreting the semicolon-delimited list as separate commands.
           echo "TORCH_CUDA_ARCH_LIST=\"${{ matrix.TORCH_CUDA_ARCH_LIST }}\"" >> $GITHUB_ENV
 
@@ -130,7 +129,7 @@ jobs:
           CIBW_BEFORE_BUILD_LINUX: >
             pip install setuptools wheel &&
             pip install typing-extensions==4.12.2 &&
-            pip install --no-cache-dir torch==${{ matrix.torch-version }} --index-url https://download.pytorch.org/whl/cu${TORCH_CUDA_VERSION} &&
+            pip install --no-cache-dir torch==${{ matrix.torch-version }} --index-url https://download.pytorch.org/whl/cu${MATRIX_CUDA_VERSION} &&
             bash build_scripts/prepare_for_build.sh ${{ steps.megablocks-version.outputs.version }}
           CIBW_ENVIRONMENT: >
             PATH=$PATH:/root/.local/bin
