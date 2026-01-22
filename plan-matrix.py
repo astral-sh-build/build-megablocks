@@ -13,15 +13,13 @@ from packaging.version import Version
 # Once it does, we can add them here to widen the matrix below,
 # or just remove this filter entirely.
 MEGABLOCKS_SUPPORTED_TORCH_VERSIONS = [
-    # "2.7.1",
+    "2.7.1",
     "2.10.0",
 ]
 
 ARCH_TORCH_PAIRS = {
-    # "x86_64": ["2.7.1", "2.8.0", "2.9.0"],
-    # "aarch64": ["2.7.1", "2.8.0", "2.9.0"],
-    "x86_64": ["2.10.0"],
-    "aarch64": ["2.10.0"],
+    "x86_64": ["2.7.1", "2.10.0"],
+    "aarch64": ["2.7.1", "2.10.0"],
 }
 
 # Supported Python versions for each PyTorch version.
