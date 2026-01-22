@@ -60,8 +60,9 @@ PYTORCH_CUDA_VERSIONS: dict[tuple[str, str], list[str]] = {
     ("2.8", "aarch64"): ["12.9"],
     ("2.9", "x86_64"): ["12.6", "12.8", "12.9", "13.0"],
     ("2.9", "aarch64"): ["12.6", "12.8", "12.9", "13.0"],
-    ("2.10", "x86_64"): ["12.9.0", "13.0.0"],
-    ("2.10", "aarch64"): ["12.9.0", "13.0.0"],
+    # TODO(charlie): MegaBlocks doesn't support CUDA 13 yet.
+    ("2.10", "x86_64"): ["12.9"],
+    ("2.10", "aarch64"): ["12.9"],
 }
 
 # CUDA architectures to build against for each PyTorch version.
