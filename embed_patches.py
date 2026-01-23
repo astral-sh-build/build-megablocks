@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.12"
 # ///
-"""Embed an SBOM into a wheel's .dist-info/sboms/ directory."""
+"""Embed an Astral-specific SBOM into a wheel's .dist-info/sboms/ directory."""
 
 import argparse
 import base64
@@ -141,7 +141,7 @@ def embed_sbom(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Embed an SBOM into a wheel's .dist-info/sboms/ directory."
+        description="Embed an Astral-specific SBOM into a wheel's .dist-info/sboms/ directory."
     )
     parser.add_argument("wheel", type=Path, help="Path to the wheel file")
     parser.add_argument("patches_dir", type=Path, help="Path to the patches directory")
