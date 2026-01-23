@@ -17,7 +17,7 @@ from pathlib import Path
 def rewrite_zip_with_bytes(
     src_zip_path: str | os.PathLike[str],
     dst_zip_path: str | os.PathLike[str],
-    replacements: dict[str, str],
+    target_filenames: dict[str, str],
     additions: dict[str, str] | None = None,
 ) -> None:
     """Rewrite a zip file, replacing and adding files.
@@ -25,7 +25,7 @@ def rewrite_zip_with_bytes(
     Args:
         src_zip_path: Path to the source zip file.
         dst_zip_path: Path to the destination zip file.
-        replacements: Map of filename -> content for files to replace.
+        target_filenames: Map of filename -> content for files to replace.
         additions: Map of filename -> content for files to add.
     """
     with (
@@ -35,7 +35,7 @@ def rewrite_zip_with_bytes(
         for original_info in zin.infolist():
             compress_type = original_info.compress_type
 
-            if data := replacements.get(original_info.filename):
+            if data := target_filenames.get(original_info.filename):
                 # Write out the updated data.
                 zout.writestr(
                     original_info,
@@ -130,7 +130,7 @@ def embed_sbom(
     rewrite_zip_with_bytes(
         wheel_path,
         temp_path,
-        replacements={record_path: new_record},
+        target_filenames={record_path: new_record},
         additions={sbom_path: sbom_content},
     )
 
