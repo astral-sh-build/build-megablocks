@@ -97,7 +97,7 @@ def embed_sbom(
             patch_file.name: patch_file.read_text() for patch_file in patch_files
         },
     }
-    sbom_content = json.dumps(sbom, indent=2) + "\n"
+    sbom_content = json.dumps(sbom, indent=2)
     sbom_bytes = sbom_content.encode("utf-8")
 
     # Determine paths within the wheel.
