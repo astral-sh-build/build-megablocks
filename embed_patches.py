@@ -1,13 +1,14 @@
 # /// script
 # requires-python = ">=3.12"
 # ///
-"""Embed patch files into a wheel's .dist-info/patches/ directory."""
+"""Embed an SBOM into a wheel's .dist-info/sboms/ directory."""
 
 import argparse
 import base64
 import csv
 import hashlib
 import io
+import json
 import os
 import zipfile
 from pathlib import Path
@@ -68,41 +69,48 @@ def compute_hash(content: bytes) -> str:
     return f"sha256={base64.urlsafe_b64encode(digest).rstrip(b'=').decode()}"
 
 
-def add_record_entry(
-    writer: csv.writer,
-    additions: dict[str, str],
-    path: str,
-    content: str,
-) -> None:
-    """Add a file to additions and write its RECORD entry."""
-    content_bytes = content.encode("utf-8")
-    additions[path] = content
-    writer.writerow([path, compute_hash(content_bytes), str(len(content_bytes))])
-
-
-def embed_patches(
+def embed_sbom(
     wheel_path: Path,
     patches_dir: Path,
-    upstream_repo: str | None = None,
-    upstream_ref: str | None = None,
+    source_repo: str,
+    source_tag: str,
+    source_commit: str,
+    build_repo: str,
+    build_commit: str,
 ) -> None:
-    """Embed patches into a wheel file."""
+    """Embed an SBOM into a wheel file."""
     # Find all .patch files.
     patch_files = sorted(patches_dir.glob("*.patch"))
-    if not patch_files:
-        print(f"No patch files found in {patches_dir}")
-        return
+
+    # Build the SBOM.
+    sbom = {
+        "source": {
+            "repository": source_repo,
+            "tag": source_tag,
+            "commit": source_commit,
+        },
+        "build": {
+            "repository": build_repo,
+            "commit": build_commit,
+        },
+        "patches": {
+            patch_file.name: patch_file.read_text() for patch_file in patch_files
+        },
+    }
+    sbom_content = json.dumps(sbom, indent=2) + "\n"
+    sbom_bytes = sbom_content.encode("utf-8")
 
     # Determine paths within the wheel.
     with zipfile.ZipFile(wheel_path, "r") as wheel:
         dist_info = get_dist_info_dir(wheel)
         record_path = f"{dist_info}/RECORD"
+        sbom_path = f"{dist_info}/sboms/astral.json"
 
         # Read existing RECORD.
         record_content = wheel.read(record_path).decode("utf-8")
         record_lines = record_content.splitlines()
 
-        # Build new RECORD entries and additions.
+        # Build new RECORD entries.
         record_out = io.StringIO()
         reader = csv.reader(record_lines)
         writer = csv.writer(record_out)
@@ -110,25 +118,9 @@ def embed_patches(
             if row and row[0] != record_path:  # Skip RECORD itself (added at end).
                 writer.writerow(row)
 
-        additions = {}
-
-        # Add SOURCE file with provenance info.
-        if upstream_repo or upstream_ref:
-            source_content = ""
-            if upstream_repo:
-                source_content += f"repository: {upstream_repo}\n"
-            if upstream_ref:
-                source_content += f"ref: {upstream_ref}\n"
-            add_record_entry(
-                writer, additions, f"{dist_info}/patches/SOURCE", source_content
-            )
-
-        # Add patch files.
-        for patch_file in patch_files:
-            patch_content = patch_file.read_text()
-            add_record_entry(
-                writer, additions, f"{dist_info}/patches/{patch_file.name}", patch_content
-            )
+        # Add SBOM entry.
+        sbom_hash = f"sha256={base64.urlsafe_b64encode(hashlib.sha256(sbom_bytes).digest()).rstrip(b'=').decode()}"
+        writer.writerow([sbom_path, sbom_hash, str(len(sbom_bytes))])
 
         writer.writerow([record_path, "", ""])  # RECORD has no hash.
         new_record = record_out.getvalue()
@@ -139,25 +131,34 @@ def embed_patches(
         wheel_path,
         temp_path,
         replacements={record_path: new_record},
-        additions=additions,
+        additions={sbom_path: sbom_content},
     )
 
     # Replace original wheel.
     temp_path.replace(wheel_path)
-    print(f"Embedded {len(patch_files)} patch(es) into {wheel_path}")
+    print(f"Embedded SBOM with {len(patch_files)} patch(es) into {wheel_path}")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Embed patch files into a wheel's .dist-info/patches/ directory."
+        description="Embed an SBOM into a wheel's .dist-info/sboms/ directory."
     )
     parser.add_argument("wheel", type=Path, help="Path to the wheel file")
     parser.add_argument("patches_dir", type=Path, help="Path to the patches directory")
     parser.add_argument(
-        "--upstream-repo", type=str, help="Upstream repository URL"
+        "--source-repo", type=str, required=True, help="Source repository URL"
     )
     parser.add_argument(
-        "--upstream-ref", type=str, help="Upstream git ref (commit, tag, or branch)"
+        "--source-tag", type=str, required=True, help="Source git tag"
+    )
+    parser.add_argument(
+        "--source-commit", type=str, required=True, help="Source git commit SHA"
+    )
+    parser.add_argument(
+        "--build-repo", type=str, required=True, help="Build repository URL"
+    )
+    parser.add_argument(
+        "--build-commit", type=str, required=True, help="Build git commit SHA"
     )
     args = parser.parse_args()
 
@@ -167,11 +168,14 @@ def main() -> None:
     if not args.patches_dir.exists():
         parser.error(f"Patches directory not found: {args.patches_dir}")
 
-    embed_patches(
+    embed_sbom(
         args.wheel,
         args.patches_dir,
-        upstream_repo=args.upstream_repo,
-        upstream_ref=args.upstream_ref,
+        source_repo=args.source_repo,
+        source_tag=args.source_tag,
+        source_commit=args.source_commit,
+        build_repo=args.build_repo,
+        build_commit=args.build_commit,
     )
 
 

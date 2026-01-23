@@ -89,6 +89,10 @@ jobs:
           ref: ${{ steps.megablocks-version.outputs.version }}
           persist-credentials: false
 
+      - name: Get source commit SHA
+        id: source-commit
+        run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
       - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
         with:
           python-version: "3.13"
@@ -152,15 +156,24 @@ jobs:
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair -w /tmp/cibuildwheel/repaired_wheel {wheel} ${CI_AUDITWHEEL_EXCLUDES}"
           CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
 
-      - name: Embed patches into wheel
+      - name: Get build commit SHA
+        id: build-commit
+        run: echo "sha=$(git -C build_scripts rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Embed SBOM into wheel
         run: |
           for wheel in dist/*.whl; do
             uv run --script build_scripts/embed_patches.py "$wheel" "build_scripts/patches/${MEGABLOCKS_VERSION}" \
-              --upstream-repo "https://github.com/databricks/megablocks" \
-              --upstream-ref "${MEGABLOCKS_VERSION}"
+              --source-repo "https://github.com/databricks/megablocks" \
+              --source-tag "${MEGABLOCKS_VERSION}" \
+              --source-commit "${SOURCE_COMMIT}" \
+              --build-repo "https://github.com/astral-sh-build/build-megablocks" \
+              --build-commit "${BUILD_COMMIT}"
           done
         env:
           MEGABLOCKS_VERSION: ${{ steps.megablocks-version.outputs.version }}
+          SOURCE_COMMIT: ${{ steps.source-commit.outputs.sha }}
+          BUILD_COMMIT: ${{ steps.build-commit.outputs.sha }}
 
       - name: Log Built Wheels
         run: |
