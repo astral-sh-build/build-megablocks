@@ -156,10 +156,6 @@ jobs:
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair -w /tmp/cibuildwheel/repaired_wheel {wheel} ${CI_AUDITWHEEL_EXCLUDES}"
           CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
 
-      - name: Get build commit SHA
-        id: build-commit
-        run: echo "sha=$(git -C build_scripts rev-parse HEAD)" >> $GITHUB_OUTPUT
-
       - name: Embed SBOM into wheel
         run: |
           for wheel in dist/*.whl; do
@@ -173,7 +169,7 @@ jobs:
         env:
           MEGABLOCKS_VERSION: ${{ steps.megablocks-version.outputs.version }}
           SOURCE_COMMIT: ${{ steps.source-commit.outputs.sha }}
-          BUILD_COMMIT: ${{ steps.build-commit.outputs.sha }}
+          BUILD_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Log Built Wheels
         run: |
