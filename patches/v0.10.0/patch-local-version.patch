@@ -1,0 +1,16 @@
+diff --git a/setup.py b/setup.py
+index 26cecf4..b3d5a7e 100644
+--- a/setup.py
++++ b/setup.py
+@@ -31,6 +31,11 @@ with open(version_path, encoding='utf-8') as f:
+     content = f.read()
+     exec(content, version_globals, version_locals)
+     repo_version = version_locals['__version__']
++    # Auto-generate local version from CUDA and PyTorch versions.
++    cuda_version = torch.version.cuda
++    torch_version = ".".join(torch.__version__.split(".")[:2])
++    if cuda_version:
++        repo_version = f"{repo_version}+cu.{cuda_version}.torch.{torch_version}"
+
+ with open('README.md', 'r', encoding='utf-8') as fh:
+     long_description = fh.read()
