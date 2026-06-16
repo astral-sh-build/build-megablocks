@@ -159,7 +159,7 @@ jobs:
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair -w /tmp/cibuildwheel/repaired_wheel {wheel} ${CI_AUDITWHEEL_EXCLUDES}"
           CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
 
-      - name: Embed SBOM into wheel
+      - name: Embed metadata into wheel
         run: |
           for wheel in dist/*.whl; do
             uv run --script build_scripts/embed_patches.py "$wheel" "build_scripts/patches/${MEGABLOCKS_VERSION}" \
@@ -167,7 +167,11 @@ jobs:
               --source-tag "${MEGABLOCKS_VERSION}" \
               --source-commit "${SOURCE_COMMIT}" \
               --build-repo "https://github.com/astral-sh-build/build-megablocks" \
-              --build-commit "${BUILD_COMMIT}"
+              --build-commit "${BUILD_COMMIT}" \
+              --license-expression "Apache-2.0 AND BSD-3-Clause" \
+              --license-file "LICENSE:LICENSE" \
+              --license-file "build_scripts/licenses/cub/LICENSE.txt:third-party/cub/LICENSE.txt" \
+              --license-file "build_scripts/licenses/cub/SOURCE.txt:third-party/cub/SOURCE.txt"
           done
         env:
           MEGABLOCKS_VERSION: ${{ steps.megablocks-version.outputs.version }}
