@@ -1,0 +1,11 @@
+This notice applies to CUB header/template code included from the CUDA/CCCL
+toolchain while compiling the MegaBlocks extension.
+
+MegaBlocks includes <cub/cub.cuh> from source files such as:
+
+* csrc/cumsum.h
+* csrc/histogram.h
+* csrc/replicate.h
+* csrc/sort.h
+
+CUB project: https://github.com/NVIDIA/cccl/tree/main/cub
