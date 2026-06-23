@@ -7,16 +7,13 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
-      MEGABLOCKS_VERSION:
-        description: "MegaBlocks version"
+      release_tag:
+        description: "Release tag (for example, v0.10.0-r6)"
         required: true
-        default: "v0.10.0"
         type: string
-  release:
-    types: [created]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref_name }}-${{ github.event.pull_request.number || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || inputs.release_tag || github.sha }}
   cancel-in-progress: true
 
 jobs:
@@ -29,6 +26,17 @@ jobs:
     outputs:
       matrix: ${{ steps.generate-matrix.outputs.matrix }}
     steps:
+      - name: Check release does not exist
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          if gh release view "${RELEASE_TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            echo "Release ${RELEASE_TAG} already exists"
+            exit 1
+          fi
+
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
@@ -54,8 +62,7 @@ jobs:
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-build') }}
 
     permissions:
-      contents: write
-      actions: write
+      contents: read
 
     strategy:
       fail-fast: false
@@ -66,15 +73,10 @@ jobs:
       - name: Determine MegaBlocks version
         id: megablocks-version
         run: |
-          # Extract MegaBlocks version from tag. Tags can be either:
-          # - v0.10.0 (legacy format; maps directly to MegaBlocks version)
-          # - v0.10.0-r1 (new format; strip -rN suffix to get MegaBlocks version)
-          if [ "${GITHUB_EVENT_NAME}" = "release" ]; then
-            TAG="${GITHUB_REF_NAME}"
-            # Remove -rN suffix if present
-            MEGABLOCKS_VERSION="${TAG%-r*}"
-          elif [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
-            MEGABLOCKS_VERSION="${INPUTS_MEGABLOCKS_VERSION}"
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            # The optional -rN suffix identifies a build revision, not an
+            # upstream MegaBlocks tag.
+            MEGABLOCKS_VERSION=$(printf '%s\n' "${INPUTS_RELEASE_TAG}" | sed -E 's/-r[0-9]+$//')
           else
             MEGABLOCKS_VERSION="v0.10.0"
           fi
@@ -82,8 +84,7 @@ jobs:
           echo "Using MegaBlocks version: ${MEGABLOCKS_VERSION}"
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_REF_NAME: ${{ github.ref_name }}
-          INPUTS_MEGABLOCKS_VERSION: ${{ inputs.MEGABLOCKS_VERSION }}
+          INPUTS_RELEASE_TAG: ${{ inputs.release_tag }}
 
       - name: Checkout MegaBlocks
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -186,14 +187,32 @@ jobs:
           ls dist
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: github.event_name != 'release'
         with:
           name: ${{env.wheel_name}}
           path: dist/${{env.wheel_name}}
           if-no-files-found: error
 
-      - name: Upload wheels to release
-        if: github.event_name == 'release'
+  create-release:
+    name: Create release
+    if: github.event_name == 'workflow_dispatch'
+    needs: [build-wheels]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download wheels
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${GITHUB_REF_NAME}" ./dist/*.whl --clobber --repo "${GITHUB_REPOSITORY}"
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: >-
+          gh release create "${RELEASE_TAG}" ./dist/*.whl
+          --target "${GITHUB_SHA}"
+          --title "${RELEASE_TAG}"
+          --notes ""
+          --repo "${GITHUB_REPOSITORY}"
