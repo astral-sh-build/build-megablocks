@@ -65,7 +65,7 @@ jobs:
           if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
             # The optional -rN suffix identifies a build revision, not an
             # upstream MegaBlocks tag.
-            MEGABLOCKS_VERSION=$(printf '%s\n' "${INPUTS_RELEASE_TAG}" | sed -E 's/-r[0-9]+$//')
+            MEGABLOCKS_VERSION=$(sed -E 's/-r[0-9]+$//' <<<"${INPUTS_RELEASE_TAG}")
           else
             MEGABLOCKS_VERSION="v0.10.0"
           fi
